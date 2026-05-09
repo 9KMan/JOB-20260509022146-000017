@@ -1,0 +1,184 @@
+# GPS-Based Employee Attendance System with Company Website
+
+## 1. Project Overview
+
+**Client:** Freelancer.com client seeking a professional GPS-based attendance system with integrated company website.  
+**Goal:** Build a production-ready attendance management platform with mobile/web check-in, admin dashboard, and corporate web presence.  
+**Stack:** PHP + MySQL + Android (native) + GPS APIs  
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        SYSTEM ARCHITECTURE                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────┐     ┌──────────┐     ┌──────────────────────────────┐  │
+│  │ Employee │     │ Employee │     │         ADMIN PANEL          │  │
+│  │  Web App │     │Android App│     │   (PHP + Bootstrap Dashboard) │  │
+│  │ (mobile) │     │  (native) │     │                              │  │
+│  └────┬─────┘     └────┬─────┘     │  • Employee CRUD              │  │
+│       │               │           │  • Location Management         │  │
+│       └───────┬───────┘           │  • Attendance Reports         │  │
+│               │ GPS coords         │  • Excel/PDF Export           │  │
+│               ▼                   │  • Radius Configuration         │  │
+│  ┌────────────────────────┐       └──────────────┬───────────────┘  │
+│  │   LOCATION VERIFICATION │                         │                 │
+│  │   (Haversine formula)    │                         │                 │
+│  │   Validates emp within   │                         │                 │
+│  │   assigned site radius   │                         │                 │
+│  └────────────┬───────────┘                         │                 │
+│               │                                      │                 │
+│               ▼                                      ▼                 │
+│  ┌────────────────────────────────────────────────────────────┐      │
+│  │                     MySQL DATABASE                          │      │
+│  │  employees | sites | attendance | users | site_radius       │      │
+│  └────────────────────────────────────────────────────────────┘      │
+│                              │                                       │
+│                              ▼                                       │
+│  ┌────────────────────────────────────────────────────────────┐      │
+│  │              COMPANY WEBSITE (PHP Pages)                    │      │
+│  │  Home | About Us | Services | Contact | Admin Login        │      │
+│  └────────────────────────────────────────────────────────────┘      │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## 2. Core Workstreams
+
+### Workstream 1 — Database Schema (MySQL)
+- `employees` — id, name, email, phone, designation, department, created_at
+- `users` — id, employee_id (FK), username, password_hash, role (admin/employee), status
+- `sites` — id, name, address, latitude, longitude, radius_meters, created_at
+- `attendance` — id, employee_id (FK), site_id (FK), check_in_time, check_out_time, check_in_lat, check_in_lng, check_out_lat, check_out_lng, status
+- `site_radius` — site_id, radius_meters (configurable per site)
+
+### Workstream 2 — Admin Panel (PHP + Bootstrap)
+- Dashboard with today's attendance overview
+- Employee CRUD with department/ designation fields
+- Site/location management with map coordinates + radius input
+- Daily/Monthly attendance reports with filters (date range, employee, site)
+- Export to Excel (PHPExcel/phpspreadsheet) and PDF (TCPDF/mpdf)
+- Attendance history with full audit trail
+
+### Workstream 3 — Employee Web App (PHP + Mobile Responsive)
+- Login with username/password
+- Check-in button (validates GPS against assigned site)
+- Check-out button (records end time + GPS)
+- My attendance history view (last 30 days)
+- Profile view
+
+### Workstream 4 — Android Native App
+- Login screen with JWT token storage
+- GPS capture with high-accuracy location provider
+- Check-in/check-out with server-side radius validation
+- Offline queue: store attendance locally when no network, sync when online
+- Attendance history view
+
+### Workstream 5 — Location Verification Service
+- Haversine formula for distance calculation
+- API endpoint: `POST /api/verify-location` — takes employee_id, lat, lng, site_id → returns valid/invalid + distance
+- Configurable radius per site (default: 100 meters)
+
+### Workstream 6 — Company Website (Static PHP)
+- Responsive Bootstrap template
+- Home, About Us, Services, Contact (with form), Admin Login link
+- Consistent branding with attendance system
+
+## 3. Data Model
+
+```sql
+-- Employees
+CREATE TABLE employees (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE,
+  phone VARCHAR(20),
+  designation VARCHAR(50),
+  department VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Users (auth)
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  employee_id INT REFERENCES employees(id),
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('admin','employee') DEFAULT 'employee',
+  status ENUM('active','inactive') DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Office Sites
+CREATE TABLE sites (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  address VARCHAR(255),
+  latitude DECIMAL(10,8) NOT NULL,
+  longitude DECIMAL(11,8) NOT NULL,
+  radius_meters INT DEFAULT 100,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Attendance Records
+CREATE TABLE attendance (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  employee_id INT REFERENCES employees(id),
+  site_id INT REFERENCES sites(id),
+  check_in_time DATETIME NOT NULL,
+  check_out_time DATETIME,
+  check_in_lat DECIMAL(10,8),
+  check_in_lng DECIMAL(11,8),
+  check_out_lat DECIMAL(10,8),
+  check_out_lng DECIMAL(11,8),
+  check_in_valid BOOLEAN DEFAULT FALSE,
+  check_out_valid BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 4. API Design
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/login` | Authenticate user, return JWT |
+| POST | `/api/verify-location` | Validate GPS coords against site radius |
+| POST | `/api/attendance/checkin` | Record check-in with GPS + validation |
+| POST | `/api/attendance/checkout` | Record check-out with GPS |
+| GET | `/api/attendance/history?emp_id=&from=&to=` | Employee attendance history |
+| GET | `/api/admin/employees` | List all employees |
+| POST | `/api/admin/employees` | Create employee |
+| PUT | `/api/admin/employees/{id}` | Update employee |
+| DELETE | `/api/admin/employees/{id}` | Delete employee |
+| GET | `/api/admin/sites` | List all sites |
+| POST | `/api/admin/sites` | Create site |
+| PUT | `/api/admin/sites/{id}` | Update site (incl. radius) |
+| GET | `/api/admin/reports/attendance?from=&to=&emp_id=` | Attendance report data |
+| GET | `/api/admin/reports/export?format=excel|pdf` | Export report |
+
+## 5. Technical Decisions
+
+1. **PHP + MySQL** — Required by client; vanilla PHP with Bootstrap for admin panel (no heavy framework needed for this scope)
+2. **Android native** — Kotlin with Retrofit for API calls, Room for local offline storage
+3. **Haversine formula** — Server-side GPS validation (never trust client-side validation); Android app sends raw GPS, server validates
+4. **JWT auth** — Stateless auth for API; refresh token rotation
+5. **Offline-first Android** — Queue attendance locally in Room DB, sync when network available; prevents data loss in low-connectivity areas
+6. **PHPExcel/phpspreadsheet** — Excel export; mPDF or TCPDF for PDF generation
+7. **Bootstrap admin panel** — Fast delivery, professional look, minimal maintenance
+
+## 6. Out of Scope
+
+- Cloud deployment / hosting setup
+- Push notifications (FCM)
+- Leave management module
+- Payroll integration
+- Multi-tenant SaaS architecture
+- SSO / OAuth integrations
+
+## 7. Success Metrics
+
+- Employee can check in within 30 seconds of opening app
+- GPS validation rejects attendance > 200m from assigned site
+- Admin can generate monthly report in < 5 seconds
+- Excel/PDF exports open correctly with formatted data
+- Company website loads on mobile in < 3 seconds
+- Android app works offline and syncs correctly when reconnected

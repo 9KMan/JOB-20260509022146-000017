@@ -1,0 +1,36 @@
+# PHP dependencies
+/vendor/
+/composer.lock
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+/logs/
+
+# Build artifacts
+/node_modules/
+/android/.gradle/
+/android/app/build/
+/android/build/
+
+# Proposal files (DO NOT COMMIT)
+/home/deploy/.hermes/proposals/PROPOSAL.md
+/home/deploy/.hermes/proposals/COVER_LETTER.txt
+
+# Environment
+/.env
+/.env.local
+/config.local.php
+
+# Temporary
+/tmp/
+/temp/
