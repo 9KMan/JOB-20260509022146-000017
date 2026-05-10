@@ -4,7 +4,7 @@
 
 **Client:** Freelancer.com client seeking a professional GPS-based attendance system with integrated company website.  
 **Goal:** Build a production-ready attendance management platform with mobile/web check-in, admin dashboard, and corporate web presence.  
-**Stack:** PHP + MySQL + Android (native) + GPS APIs  
+**Stack:** PHP + MySQL + Flutter (Android) + GPS APIs  
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -13,7 +13,7 @@
 │                                                                     │
 │  ┌──────────┐     ┌──────────┐     ┌──────────────────────────────┐  │
 │  │ Employee │     │ Employee │     │         ADMIN PANEL          │  │
-│  │  Web App │     │Android App│     │   (PHP + Bootstrap Dashboard) │  │
+│  │  Web App │     │Flutter App│     │   (PHP + Bootstrap Dashboard) │  │
 │  │ (mobile) │     │  (native) │     │                              │  │
 │  └────┬─────┘     └────┬─────┘     │  • Employee CRUD              │  │
 │       │               │           │  • Location Management         │  │
@@ -66,7 +66,7 @@
 - My attendance history view (last 30 days)
 - Profile view
 
-### Workstream 4 — Flutter Android App
+### Workstream 4 — Flutter App
 - Login screen with JWT token storage
 - GPS capture with high-accuracy location provider
 - Check-in/check-out with server-side radius validation
@@ -158,10 +158,10 @@ CREATE TABLE attendance (
 ## 5. Technical Decisions
 
 1. **PHP + MySQL** — Required by client; vanilla PHP with Bootstrap for admin panel (no heavy framework needed for this scope)
-2. **Android native** — Dart with Retrofit for API calls, SQLite for local offline storage
-3. **Haversine formula** — Server-side GPS validation (never trust client-side validation); Android app sends raw GPS, server validates
+2. **Flutter** — Dart with Retrofit for API calls, SQLite for local offline storage
+3. **Haversine formula** — Server-side GPS validation (never trust client-side validation); Flutter app sends raw GPS, server validates
 4. **JWT auth** — Stateless auth for API; refresh token rotation
-5. **Offline-first Flutter** — Queue attendance locally in Room DB, sync when network available; prevents data loss in low-connectivity areas
+5. **Offline-first Flutter** — Queue attendance locally in SQLite DB, sync when network available; prevents data loss in low-connectivity areas
 6. **PHPExcel/phpspreadsheet** — Excel export; mPDF or TCPDF for PDF generation
 7. **Bootstrap admin panel** — Fast delivery, professional look, minimal maintenance
 
@@ -181,4 +181,4 @@ CREATE TABLE attendance (
 - Admin can generate monthly report in < 5 seconds
 - Excel/PDF exports open correctly with formatted data
 - Company website loads on mobile in < 3 seconds
-- Android app works offline and syncs correctly when reconnected
+- Flutter app works offline and syncs correctly when reconnected
