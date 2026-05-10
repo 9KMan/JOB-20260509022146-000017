@@ -1,36 +1,26 @@
-# PHP dependencies
-/vendor/
-/composer.lock
+# Exclude proposal documents (they go to /home/deploy/.hermes/proposals/)
+PROPOSAL.md
+COVER_LETTER.txt
 
-# IDE
-/.idea/
-/.vscode/
+# Environment and secrets
+.env
+*.env
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
 *.swp
 *.swo
 
-# OS
-.DS_Store
-Thumbs.db
+# IDE
+.idea/
+.vscode/
+*.iml
 
-# Logs
-*.log
-/logs/
+# Node (if any future frontend work)
+node_modules/
 
-# Build artifacts
-/node_modules/
-/android/.gradle/
-/android/app/build/
-/android/build/
-
-# Proposal files (DO NOT COMMIT)
-/home/deploy/.hermes/proposals/PROPOSAL.md
-/home/deploy/.hermes/proposals/COVER_LETTER.txt
-
-# Environment
-/.env
-/.env.local
-/config.local.php
-
-# Temporary
-/tmp/
-/temp/
+# Composer dependencies
+/vendor/
+composer.phar

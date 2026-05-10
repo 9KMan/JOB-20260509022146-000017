@@ -41,8 +41,8 @@ $sites = $stmt->fetchAll();
                             <td><?php echo $site['longitude']; ?></td>
                             <td><?php echo $site['radius_meters']; ?></td>
                             <td>
-                                <button class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                <button class="btn btn-sm btn-warning" onclick="editSite(<?php echo $site['id']; ?>)"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteSite(<?php echo $site['id']; ?>)"><i class="bi bi-trash"></i></button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -60,7 +60,7 @@ $sites = $stmt->fetchAll();
                 <h5 class="modal-title">Add Site</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="../api/routes/admin-sites">
+            <form method="POST" id="addSiteForm">
                 <div class="modal-body">
                     <div class="mb-3"><label>Site Name</label><input type="text" name="name" class="form-control" required></div>
                     <div class="mb-3"><label>Address</label><textarea name="address" class="form-control"></textarea></div>
@@ -78,3 +78,29 @@ $sites = $stmt->fetchAll();
 </div>
 
 <?php require_once 'partials/footer.php'; ?>
+<script>
+async function editSite(id) {
+    window.location.href = 'site-edit.php?id=' + id;
+}
+document.getElementById('addSiteForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    try {
+        const response = await fetch('../api/admin/sites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Site added successfully');
+            location.reload();
+        } else {
+            alert('Error: ' + (result.error || 'Unknown error'));
+        }
+    } catch (err) {
+        alert('Request failed: ' + err.message);
+    }
+});
+</script>
